@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bendy Bueti</title>
+<meta name="description" content="Joe's daily mobility, flexibility and splits program.">
+<meta name="theme-color" content="#0c1315">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Bendy Bueti">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>*,*::before,*::after{box-sizing:border-box}html{-webkit-text-size-adjust:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;min-height:100vh}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,600;112,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: phone-app column with Train / Level test tabs. Dark-first deep teal ground; each stage has its own accent (amber → coral → mint → periwinkle). Player is a full-screen ring timer. */
+:root{
+  --bg:#0c1315; --surface:#141e21; --surface-2:#1b282c; --ink:#edf1ee; --muted:#8a9e9e; --line:#2a3b3f;
+  --s1:#f0b44a; --on-s1:#16110a; --s2:#f07a60; --on-s2:#1a0d09; --s3:#6fdcab; --on-s3:#06150e; --s4:#a8b6ff; --on-s4:#0d1020;
+  --accent:var(--s1); --on-accent:var(--on-s1);
+  --f-display:"Archivo","Arial Black",Arial,sans-serif;
+  --f-body:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --r:18px;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#eef2ef; --surface:#ffffff; --surface-2:#e4ebe7; --ink:#12201f; --muted:#5b6e6c; --line:#d3ddd8;
+  --s1:#c88710; --on-s1:#1a1206; --s2:#cf4f34; --on-s2:#ffffff; --s3:#1f8a5b; --on-s3:#ffffff; --s4:#4f5fd0; --on-s4:#ffffff;
+  color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#eef2ef; --surface:#ffffff; --surface-2:#e4ebe7; --ink:#12201f; --muted:#5b6e6c; --line:#d3ddd8;
+  --s1:#c88710; --on-s1:#1a1206; --s2:#cf4f34; --on-s2:#ffffff; --s3:#1f8a5b; --on-s3:#ffffff; --s4:#4f5fd0; --on-s4:#ffffff;
+  color-scheme:light}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body[data-stage="2"]{--accent:var(--s2);--on-accent:var(--on-s2)}
+body[data-stage="3"]{--accent:var(--s3);--on-accent:var(--on-s3)}
+body[data-stage="4"]{--accent:var(--s4);--on-accent:var(--on-s4)}
+button{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+
+.app{max-width:520px;margin:0 auto;padding-inline:18px;padding-block:22px 48px;display:flex;flex-direction:column;gap:22px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.count{font-family:var(--f-mono);font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.hello{display:flex;flex-direction:column;gap:2px}
+.hello p{margin:0;color:var(--muted)}
+h1,h2,h3{margin:0;font-family:var(--f-display);font-stretch:112%;text-wrap:balance;line-height:1.02}
+h1{font-size:clamp(2.1rem,9vw,2.7rem);font-weight:800;letter-spacing:-.01em}
+h1 em{font-style:normal;color:var(--accent)}
+.label{font-family:var(--f-mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+
+/* Tabs */
+.tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1.5px solid var(--line)}
+.tabs button{border:0;background:none;padding:10px 0 12px;cursor:pointer;font-weight:600;color:var(--muted);border-bottom:2.5px solid transparent;margin-bottom:-1.5px}
+.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--accent)}
+.tabs .pip{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent);margin-left:6px;vertical-align:middle}
+.view{display:flex;flex-direction:column;gap:22px}
+
+/* Stage switcher */
+.stages{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--surface);padding:4px;border-radius:14px}
+.stage{border:0;background:transparent;border-radius:10px;padding:9px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);min-width:0}
+.stage b{font-family:var(--f-display);font-stretch:112%;font-weight:600;font-size:.88rem;color:var(--ink)}
+.stage small{font-size:.66rem;font-family:var(--f-mono)}
+.stage .dot{width:8px;height:8px;border-radius:50%}
+.stage[aria-selected="true"]{background:var(--surface-2)}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;border-radius:var(--r);padding:22px;background:var(--surface);display:flex;flex-direction:column;gap:16px}
+.hero::before{content:"";position:absolute;right:-45%;bottom:-75%;width:120%;aspect-ratio:1;max-width:none;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 26%,transparent),transparent 65%);pointer-events:none}
+.hero>*{position:relative}
+.hero h2{font-size:1.7rem;font-weight:800;margin-top:6px}
+.hero p{margin:6px 0 0;color:var(--muted);font-size:.95rem}
+.stats{display:flex;gap:22px;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column}
+.stat strong{font-family:var(--f-display);font-stretch:112%;font-size:1.5rem;font-weight:800;font-variant-numeric:tabular-nums}
+.stat span{font-size:.75rem;color:var(--muted)}
+.go{border:0;border-radius:14px;background:var(--accent);color:var(--on-accent);padding:16px;font-family:var(--f-display);font-stretch:112%;font-weight:800;font-size:1.05rem;letter-spacing:.02em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
+.go svg{width:16px;height:16px}
+.go:disabled{opacity:.4;cursor:default}
+.ghost{border:1.5px solid var(--line);background:transparent;border-radius:14px;padding:13px;font-weight:600;cursor:pointer}
+
+/* Nudge */
+.nudge{display:flex;gap:14px;align-items:center;background:var(--surface);border-radius:14px;padding:14px 16px;border:1.5px dashed var(--accent)}
+.nudge p{margin:0;font-size:.9rem;flex:1;min-width:0}
+.nudge b{display:block}
+.nudge button{flex:none;border:0;border-radius:10px;background:var(--accent);color:var(--on-accent);padding:9px 14px;font-weight:600;cursor:pointer}
+
+/* Day toggle */
+.seg{display:flex;gap:6px}
+.seg button{flex:1;border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:9px 12px;cursor:pointer;font-weight:600;font-size:.9rem;color:var(--muted)}
+.seg button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink)}
+.seg .tag{font-family:var(--f-mono);font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-left:6px}
+
+/* Exercise list */
+.block-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:6px}
+.block-h h3{font-size:1.05rem;font-weight:800}
+.block-h span{font-family:var(--f-mono);font-size:.7rem;color:var(--muted)}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.item{display:grid;grid-template-columns:34px 1fr 40px;gap:12px;align-items:start;background:var(--surface);border-radius:14px;padding:14px}
+.item.split{box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--accent) 45%,transparent)}
+.idx{width:34px;height:34px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.body{min-width:0;display:flex;flex-direction:column;gap:4px}
+.name{font-weight:600;font-size:1.02rem;line-height:1.25}
+.dose{font-family:var(--f-mono);font-size:.78rem;color:var(--accent);font-variant-numeric:tabular-nums}
+.cue{font-size:.86rem;color:var(--muted)}
+.src{font-size:.7rem;color:var(--muted);opacity:.85}
+.play{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;text-decoration:none;color:var(--ink)}
+.play svg{width:14px;height:14px;margin-left:2px}
+.play:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Cards */
+.card{background:var(--surface);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:12px}
+.card h3{font-size:1.25rem;font-weight:800}
+.card .sub{margin:0;color:var(--muted);font-size:.9rem}
+.meter{position:relative;height:8px;border-radius:4px;background:var(--surface-2)}
+.meter i{display:block;height:100%;border-radius:4px;background:var(--accent);transition:width .4s}
+.meter .tick{position:absolute;top:-3px;width:2px;height:14px;background:var(--muted);opacity:.6}
+.scale{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.64rem;color:var(--muted)}
+
+/* Test */
+.test{background:var(--surface);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:10px}
+.test-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.test-h h3{font-size:1.1rem;font-weight:800;margin-top:4px}
+.test p{margin:0;font-size:.88rem;color:var(--muted)}
+.opts{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.opt{display:flex;align-items:center;gap:10px;text-align:left;border:1.5px solid var(--line);background:transparent;border-radius:12px;padding:10px 12px;cursor:pointer;font-size:.9rem}
+.opt .lv{flex:none;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--muted);display:grid;place-items:center;font-family:var(--f-mono);font-size:.66rem;color:var(--muted)}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent)}
+.opt[aria-pressed="true"] .lv{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.result{border:1.5px solid var(--accent)}
+.big{font-family:var(--f-display);font-stretch:112%;font-weight:800;font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.big small{font-size:1rem;color:var(--muted);font-weight:600}
+.areas{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.area{display:grid;grid-template-columns:96px 1fr 18px;gap:10px;align-items:center;font-size:.84rem}
+.area .bar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.area .bar i{display:block;height:100%;background:var(--accent)}
+.area .n{font-family:var(--f-mono);font-size:.72rem;color:var(--muted);text-align:right}
+.focus{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:.88rem}
+.focus b{color:var(--ink)}
+.hist{list-style:none;margin:0;padding:0;font-family:var(--f-mono);font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;gap:4px;font-variant-numeric:tabular-nums}
+.hist li{display:flex;justify-content:space-between}
+
+details{background:var(--surface);border-radius:var(--r);padding:16px 20px}
+summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--muted);font-family:var(--f-mono)}
+details[open] summary::after{content:"–"}
+details ul{margin:12px 0 0;padding-left:18px;color:var(--muted);font-size:.9rem;display:flex;flex-direction:column;gap:8px}
+
+/* Player */
+.player{position:fixed;inset:0;z-index:10;background:var(--bg);display:flex;flex-direction:column;gap:14px;padding-inline:18px;padding-top:calc(16px + env(safe-area-inset-top,0px));padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+.p-head{display:flex;align-items:center;gap:12px;max-width:520px;width:100%;margin:0 auto}
+.p-x{width:40px;height:40px;border-radius:50%;border:0;background:var(--surface);display:grid;place-items:center;cursor:pointer;flex:none}
+.p-x svg{width:16px;height:16px}
+.p-prog{flex:1;height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden}
+.p-prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .35s}
+.p-step{font-family:var(--f-mono);font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+.p-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:14px;max-width:520px;width:100%;margin:0 auto;min-height:0}
+.p-name{font-family:var(--f-display);font-stretch:112%;font-weight:800;font-size:clamp(1.7rem,7.5vw,2.4rem);line-height:1.05;text-wrap:balance}
+.p-set{font-family:var(--f-mono);font-size:.8rem;color:var(--accent);letter-spacing:.04em}
+.ring{position:relative;width:min(62vw,240px);max-width:100%;aspect-ratio:1}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .trk{fill:none;stroke:var(--surface-2);stroke-width:10}
+.ring .arc{fill:none;stroke:var(--accent);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.ring .in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.p-big{font-family:var(--f-display);font-stretch:112%;font-weight:800;font-size:clamp(3.4rem,17vw,4.8rem);line-height:1;font-variant-numeric:tabular-nums}
+.p-unit{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.p-cue{margin:0;color:var(--muted);font-size:.93rem;max-width:40ch}
+.p-meta{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;font-size:.8rem;color:var(--muted)}
+.p-watch{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--line);border-radius:999px;padding:6px 12px;text-decoration:none;color:var(--ink);font-weight:600}
+.p-watch svg{width:11px;height:11px}
+.p-ctrl{display:grid;grid-template-columns:56px 1fr 56px;gap:12px;max-width:520px;width:100%;margin:0 auto;align-items:center}
+.p-ctrl .round{width:56px;height:56px;border-radius:50%;border:0;background:var(--surface);display:grid;place-items:center;cursor:pointer}
+.p-ctrl .round svg{width:20px;height:20px}
+.p-ctrl .round:disabled{opacity:.35;cursor:default}
+.p-ctrl .go{padding-block:18px;font-size:1.15rem}
+@media (prefers-reduced-motion: reduce){.ring .arc,.p-prog i,.meter i{transition:none}}
+</style>
+
+</head>
+<body>
+<main class="app">
+  <div class="top"><span class="brand">Bendy Bueti</span><span class="count" id="count"></span></div>
+  <div class="hello"><p id="greet">Morning, Joe</p><h1 id="title"></h1></div>
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" id="tabTrain" aria-selected="true">Train</button>
+    <button type="button" role="tab" id="tabTest" aria-selected="false">Level test</button>
+  </div>
+
+  <section class="view" id="viewTrain">
+    <div id="nudge"></div>
+    <div class="stages" role="tablist" id="stages"></div>
+    <section class="hero" id="hero"></section>
+    <div class="seg" id="seg"></div>
+    <div id="blocks" class="view" style="gap:14px"></div>
+    <details>
+      <summary>How this works</summary>
+      <ul>
+        <li>Take the level test first. It puts you in the right stage and shows your weak spots.</li>
+        <li>Alternate Day A and Day B, 5–6 days a week. The app remembers which one is next.</li>
+        <li>Every day ends with a splits block: front splits on Day A, middle splits and pancake on Day B.</li>
+        <li>Retest every 4 weeks. Move up when the test says so, not by the calendar.</li>
+        <li>Contract-relax: in a split, push down into the floor for 5 seconds, relax, then sink a little lower. Repeat through the hold.</li>
+        <li>Tension is fine. Sharp, pinching or joint pain means back off.</li>
+        <li>Gear: M10 for face pulls, Roman chair for Nordics, two yoga blocks or thick books for splits, a towel or sliders for split slides.</li>
+      </ul>
+    </details>
+  </section>
+
+  <section class="view" id="viewTest" hidden>
+    <div class="card">
+      <div class="label">Level test · about 10 minutes</div>
+      <h3>Find where you're at</h3>
+      <p class="sub">Warm up first: 5 minutes of walking or do it after a session. Pick the option that matches your best attempt, using your tighter side for one-sided tests. Retest every 4 weeks.</p>
+    </div>
+    <div id="result"></div>
+    <div id="testList" class="view" style="gap:12px"></div>
+    <button class="go" type="button" id="scoreBtn">See my level</button>
+    <div id="history"></div>
+  </section>
+</main>
+
+<div class="player" id="player" hidden>
+  <div class="p-head">
+    <button class="p-x" id="pClose" type="button" aria-label="Exit session"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg></button>
+    <div class="p-prog"><i id="pBar"></i></div>
+    <span class="p-step" id="pStep"></span>
+  </div>
+  <div class="p-main">
+    <div class="p-set" id="pSet"></div>
+    <div class="p-name" id="pName"></div>
+    <div class="ring">
+      <svg viewBox="0 0 200 200"><circle class="trk" cx="100" cy="100" r="90"/><circle class="arc" id="pArc" cx="100" cy="100" r="90" stroke-dasharray="565.49" stroke-dashoffset="0"/></svg>
+      <div class="in"><div class="p-big" id="pBig"></div><div class="p-unit" id="pUnit"></div></div>
+    </div>
+    <p class="p-cue" id="pCue"></p>
+    <div class="p-meta"><span id="pSrc"></span><a class="p-watch" id="pWatch" target="_blank" rel="noopener"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M2 1l9 5-9 5z"/></svg>Demo</a></div>
+    <div class="p-meta" id="pNext"></div>
+  </div>
+  <div class="p-ctrl">
+    <button class="round" id="pPrev" type="button" aria-label="Previous"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l-6 6 6 6"/></svg></button>
+    <button class="go" id="pMain" type="button">Start</button>
+    <button class="round" id="pSkip" type="button" aria-label="Skip"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4l6 6-6 6"/></svg></button>
+  </div>
+</div>
+
+<script>
+/* ---------- Program ---------- */
+const E=(n,src,type,v,sets,sides,cue,q,split)=>({n,src,type,v,sets,sides,cue,q,split:!!split});
+const WRIST=E("Wrist prep","Roye Gold","time",60,1,1,"On all fours: rock forward and back with palms down, then fingers turned back, then backs of hands.","wrist warm up handstand");
+const PHASES=[
+ {id:1,name:"Unlock",blurb:"Get range back in the ankles, hips, spine and shoulders. Start of the splits work with easy holds.",
+  days:[
+   {name:"Day A",focus:"Knees, ankles & front split",ex:[
+    E("Wall tibialis raise","Ben Patrick","reps",20,2,1,"Back against a wall, heels out front. Lift the toes high, lower slowly.","kneesovertoesguy tibialis raise wall"),
+    E("Bent-knee calf raise","Ben Patrick","reps",15,2,1,"Heels off a plate, knees bent. Pause 2 seconds in the bottom stretch.","kneesovertoesguy bent knee calf raise"),
+    E("Ankle rocks","Ben Patrick","reps",10,1,2,"Half-kneel facing a wall. Heel down, drive the knee forward past the toes and back.","knee over toe ankle mobility rock"),
+    E("Supported deep squat","Roye Gold","time",60,2,1,"Hold the rack upright. Heels down, chest up, sway gently side to side.","roye gold deep squat"),
+    E("Elephant walk","Elastaboy","reps",10,2,1,"Hands on shins or floor. Straighten one knee, then the other.","elephant walk hamstring stretch"),
+    E("Dead bug","Core","reps",8,2,2,"Low back pressed into the floor. Lower the opposite arm and leg slowly, breathe out.","dead bug exercise"),
+    E("Couch stretch","Elastaboy","time",60,1,2,"Back knee against the wall or couch. Squeeze the glute and stay tall.","elastaboy couch stretch",1),
+    E("Half split","Elastaboy","time",45,1,2,"Kneel, front leg straight, toes up. Hinge forward with a flat back.","elastaboy half split hamstring",1),
+    E("Low lunge","Elastaboy","time",45,1,2,"Hands on blocks, back knee down. Let the hips sink forward and down.","low lunge hip flexor stretch",1)
+   ]},
+   {name:"Day B",focus:"Shoulders, spine & middle split",ex:[
+    WRIST,
+    E("Dead hang","Ben Patrick","time",25,3,1,"Let the shoulders rise to the ears and breathe. Feet on a box if grip fails.","kneesovertoesguy dead hang"),
+    E("Cat-cow","Roye Gold","reps",10,1,1,"Move one segment of the spine at a time, slow.","roye gold spine wave cat cow"),
+    E("Thread the needle","Elastaboy","reps",8,1,2,"Reach under, then open to the ceiling. Eyes follow the hand.","elastaboy thread the needle thoracic"),
+    E("Jefferson curl, no weight","Ben Patrick","reps",8,2,1,"Stand tall, tuck the chin and roll down one vertebra at a time. Roll up the same way.","kneesovertoesguy jefferson curl bodyweight"),
+    E("Cable face pull + hold","Elastaboy","reps",20,2,1,"Light on the M10. Pull to the forehead, thumbs back. Hold the last rep 20 seconds.","elastaboy face pull shoulder"),
+    E("Wall slides","Elastaboy","reps",10,2,1,"Low back, head and forearms on the wall. Slide up without losing contact.","wall slides shoulder mobility"),
+    E("Side plank","Core","time",20,2,2,"On the elbow, body in a straight line. Push the hips up toward the ceiling.","side plank form"),
+    E("Frog rock-backs","Elastaboy","reps",10,2,1,"Knees wide on a mat, shins parallel. Rock the hips back toward the heels.","elastaboy frog stretch adductor",1),
+    E("Wall straddle","Elastaboy","time",90,1,1,"Lie with your bum against the wall, legs up, and let them fall open.","wall straddle stretch middle split",1)
+   ]}
+  ]},
+ {id:2,name:"Build",blurb:"Load the range you've opened. Sissy squats come in, and the splits work starts using blocks and contract-relax.",
+  days:[
+   {name:"Day A",focus:"Knees & front split",ex:[
+    E("Loaded tibialis raise","Ben Patrick","reps",20,2,1,"Tib bar, or a kettlebell hooked over the toes while sitting on the bench.","kneesovertoesguy tib bar"),
+    E("Slant-board calf raise","Ben Patrick","reps",15,2,1,"Straight legs, heels lower than toes on a plate or slant board. Pause in the bottom stretch.","kneesovertoesguy slant board calf raise"),
+    E("Patrick step","Ben Patrick","reps",15,2,2,"Stand on a low step. Lower the free heel to the floor, front knee drives forward.","kneesovertoesguy patrick step"),
+    E("ATG split squat","Ben Patrick","reps",8,2,2,"Front heel flat, knee well past the toes. Hold the rack for balance.","kneesovertoesguy atg split squat"),
+    E("Assisted sissy squat","Ben Patrick","reps",10,2,1,"Hold the rack, rise onto the toes and let the knees travel far forward. Hips stay open.","kneesovertoesguy sissy squat"),
+    E("Hollow hold","Roye Gold","time",20,2,1,"Low back flat on the floor, arms and legs long and just off the ground. Bend the knees to make it easier.","hollow body hold progression"),
+    E("Jefferson curl, light","Ben Patrick","reps",8,2,1,"4–8 kg only. Roll down off a bench one vertebra at a time, roll up the same way.","kneesovertoesguy jefferson curl"),
+    E("Couch stretch, arm up","Elastaboy","time",60,1,2,"Same as before, but reach the same-side arm overhead and lean back slightly.","elastaboy couch stretch",1),
+    E("Front split on blocks","Elastaboy","time",60,1,2,"Hands on blocks, slide into a split as far as it allows. Contract-relax every 15 seconds.","elastaboy front splits progression",1)
+   ]},
+   {name:"Day B",focus:"Bridge, crawl & middle split",ex:[
+    WRIST,
+    E("Scap pulls","Ben Patrick","reps",8,2,1,"From a dead hang, pull the shoulders down without bending the elbows.","scapular pull up"),
+    E("Shoulder dislocates","Elastaboy","reps",10,2,1,"Broomstick or band, wide grip, straight arms over and back. Narrow the grip over weeks.","elastaboy shoulder dislocates"),
+    E("Open book","Roye Gold","reps",8,1,2,"Lie on your side, knees bent. Open the top arm across to the floor behind you, eyes follow.","open book thoracic rotation"),
+    E("Bear crawl","Roye Gold","time",30,2,1,"Knees an inch off the floor. Slow and quiet, forward then back.","roye gold quadrupedal movement"),
+    E("Copenhagen plank, short","Core","time",15,2,2,"Side plank with the top knee on the bench, bottom leg off the floor. Trains the inner thighs for the splits.","copenhagen plank short lever"),
+    E("Floor bridge hold","Roye Gold","time",15,3,1,"Push up into a back bridge. Head can rest on the floor at first.","roye gold bridge"),
+    E("Cossack squat","Elastaboy","reps",6,2,2,"Light kettlebell as counterweight. Sit into one hip, other toes to the sky.","elastaboy cossack squat",1),
+    E("Pancake good morning","Elastaboy","reps",10,2,1,"Wide stance, flat back, hinge and reach toward the floor.","elastaboy pancake stretch",1),
+    E("Straddle side bend","Elastaboy","time",30,1,2,"Sit in a wide straddle. Reach one arm overhead toward the opposite foot, chest facing forward.","straddle side bend stretch",1),
+    E("Frog stretch hold","Elastaboy","time",60,1,1,"Hold the deepest frog you can. Contract-relax by pressing the knees into the floor.","elastaboy frog stretch",1)
+   ]}
+  ]},
+ {id:3,name:"Open",blurb:"Elastaboy-style loaded stretching. Split slides, a weighted pancake and full sissy squats.",
+  days:[
+   {name:"Day A",focus:"Strong knees & front split",ex:[
+    E("Heavy tibialis raise","Ben Patrick","reps",15,2,1,"Add weight each week you get all reps.","kneesovertoesguy tib bar"),
+    E("Loaded ankle rock","Ben Patrick","reps",10,1,2,"Half-kneel with a kettlebell on the front knee. Drive the knee past the toes, heel stays down.","loaded ankle dorsiflexion stretch kettlebell"),
+    E("Sissy squat","Ben Patrick","reps",8,3,1,"Fingertips on the rack only. Knees forward, lean back in a straight line from knee to head.","kneesovertoesguy sissy squat"),
+    E("Loaded ATG split squat","Ben Patrick","reps",6,3,2,"Dumbbells in hand, same depth as bodyweight.","kneesovertoesguy loaded atg split squat"),
+    E("Hanging knee raise","Elastaboy","reps",10,2,1,"From a dead hang, curl the knees to the chest and tilt the pelvis up. No swinging.","hanging knee raise form"),
+    E("Elevated RDL","Elastaboy","reps",8,2,1,"Stand on a plate, dumbbells in hand. Slow 3-second lower into the hamstring stretch.","elastaboy stretch mediated hypertrophy hamstring"),
+    E("Front split slides","Elastaboy","time",40,2,2,"Front heel on a towel or slider, hands on blocks. Slide down, contract-relax, slide lower.","front split slides sliders",1),
+    E("Seated leg lifts","Elastaboy","reps",10,2,2,"Sit tall with legs straight. Lift one leg off the floor without leaning back. Builds active range.","seated pike leg lift compression",1)
+   ]},
+   {name:"Day B",focus:"Bridge & middle split",ex:[
+    WRIST,
+    E("Shoulder dislocates, narrow","Elastaboy","reps",10,2,1,"Narrower grip than Stage 2. Slow and controlled.","elastaboy shoulder dislocates"),
+    E("Full bridge","Roye Gold","time",15,3,1,"Push up through straight arms if you can. Push the chest toward the wall behind your hands.","roye gold bridge"),
+    E("Jefferson curl","Ben Patrick","reps",8,2,1,"8–16 kg. Add weight only when last week felt easy.","kneesovertoesguy jefferson curl"),
+    E("Copenhagen plank, long","Core","time",20,2,2,"Top foot on the bench, legs straight, bottom leg off the floor.","copenhagen plank long lever"),
+    E("Weighted side bend","Elastaboy","reps",10,2,2,"Dumbbell in one hand, reach it down the leg, then the free arm overhead. Slow stretch at the bottom.","weighted side bend lateral flexion"),
+    E("Weighted pancake","Elastaboy","time",45,2,1,"Sit in a wide straddle, plate in hands, and let it pull your chest toward the floor.","elastaboy weighted pancake",1),
+    E("Middle split slides","Elastaboy","time",40,2,1,"Hands on blocks, feet on sliders or socks. Slide wide, contract-relax, slide wider.","middle split slides progression",1),
+    E("Goblet Cossack squat","Elastaboy","reps",6,2,2,"Kettlebell at the chest, full depth, pause at the bottom.","goblet cossack squat",1)
+   ]}
+  ]},
+ {id:4,name:"Elastic",blurb:"The Elastaboy end goal: full splits, a flat pancake, straight-arm bridge, handstand and bulletproof knees.",
+  days:[
+   {name:"Day A",focus:"Bulletproof legs & front split",ex:[
+    E("Tibialis raise, heavy","Ben Patrick","reps",15,2,1,"Keep this forever. Add weight when you get every rep.","kneesovertoesguy tib bar"),
+    E("Loaded ankle rock","Ben Patrick","reps",10,1,2,"Heavier kettlebell on the knee. Heel down, knee well past the toes.","loaded ankle dorsiflexion stretch kettlebell"),
+    E("Weighted sissy squat","Ben Patrick","reps",8,3,1,"Hold a plate at the chest. Full depth, slow on the way down.","kneesovertoesguy weighted sissy squat"),
+    E("Nordic curl","Ben Patrick","reps",5,3,1,"On the Roman chair. Lower as slowly as you can, catch with the hands, push back.","kneesovertoesguy nordic curl"),
+    E("Reverse Nordic","Ben Patrick","reps",8,2,1,"Kneeling, lean back in a straight line from knee to head.","kneesovertoesguy reverse nordic"),
+    E("L-sit","Roye Gold","time",10,3,1,"Hands on the floor or parallettes, push down and lift the legs. Tuck one or both knees until you can hold it straight.","roye gold l sit progression"),
+    E("Jefferson curl, heavy","Ben Patrick","reps",6,2,1,"Heavier only when last week felt easy. Always slow.","kneesovertoesguy jefferson curl"),
+    E("Front split hold","Elastaboy","time",45,2,2,"Square hips, back knee pointing down. Contract-relax through the hold.","elastaboy front splits",1),
+    E("Elevated front split","Elastaboy","time",30,1,2,"Front heel on a plate. Only once the flat split is comfortable.","oversplit front split elevated",1)
+   ]},
+   {name:"Day B",focus:"Bridge, handstand & middle split",ex:[
+    WRIST,
+    E("German hang","Roye Gold","time",20,2,1,"Low bar or rings, feet on the floor. Rotate back into a shoulder stretch behind you.","german hang progression"),
+    E("Straight-arm bridge","Roye Gold","time",20,3,1,"Arms locked, shoulders over the hands, legs as straight as you can.","roye gold bridge"),
+    E("Chest-to-wall handstand","Roye Gold","time",30,3,1,"Walk up the wall. Stack hips over shoulders and push the floor away.","roye gold handstand"),
+    E("Copenhagen plank, long","Core","time",30,2,2,"Top foot on the bench, legs straight. Lift the bottom leg up to meet the bench.","copenhagen plank long lever"),
+    E("Jefferson curl, moderate","Ben Patrick","reps",6,2,1,"Lighter than Day A. Focus on segmenting every vertebra.","kneesovertoesguy jefferson curl"),
+    E("Weighted side bend","Elastaboy","reps",10,1,2,"Heavier dumbbell, full reach, slow at the bottom.","weighted side bend lateral flexion"),
+    E("Loaded pancake","Elastaboy","time",45,2,1,"Heavier plate. Aim for chest to the floor with a flat back.","elastaboy pancake",1),
+    E("Middle split hold","Elastaboy","time",45,2,1,"Hips over the knees, toes up. Contract-relax through the hold.","elastaboy middle split",1),
+    E("Hanging pike raise","Elastaboy","reps",8,2,1,"Straight legs toward the bar. Slow down, no swinging.","hanging leg raise pike")
+   ]}
+  ]}
+];
+
+/* ---------- Level test ---------- */
+const TESTS=[
+ {k:"ankles",area:"Ankles",name:"Knee-to-wall",how:"Face a wall in a half-kneel. Keep the heel down and push the knee to touch the wall. Measure how far your toes are from the wall.",q:"knee to wall ankle dorsiflexion test",
+  o:["Under 5 cm","5–9 cm","10–12 cm","13 cm or more"],tip:"Add a set of tibialis raises and bent-knee calf raises every day."},
+ {k:"squat",area:"Deep squat",name:"Deep squat hold",how:"Feet shoulder-width, no support, heels down. Sit as deep as you can.",q:"deep squat test heels down",
+  o:["Can't get to the bottom","Bottom only with heels up or holding on","30 seconds, heels down","2 minutes, chest up, comfortable"],tip:"Spend 2–5 minutes a day in a supported deep squat, even while on your phone."},
+ {k:"pike",area:"Forward fold",name:"Standing toe touch",how:"Feet together, knees locked. Fold forward and let the arms hang.",q:"standing toe touch test",
+  o:["Fingertips above mid-shin","Fingertips mid-shin to ankle","Fingertips touch the floor","Palms flat on the floor"],tip:"Add 2 extra sets of elephant walks, and do the half split every day."},
+ {k:"front",area:"Front split",name:"Front split height",how:"Hands on blocks, slide into a front split on your tighter side. Measure the gap from your hips to the floor.",q:"front splits flexibility test",
+  o:["More than 30 cm","15–30 cm","Under 15 cm","Flat on the floor"],tip:"Do the couch stretch and half split every evening, 60 seconds each side."},
+ {k:"middle",area:"Middle split",name:"Middle split height",how:"Hands on blocks, slide your feet out sideways, toes up. Measure the gap from your hips to the floor.",q:"middle split flexibility test",
+  o:["More than 40 cm","25–40 cm","10–25 cm","Under 10 cm or flat"],tip:"Add 2 minutes of frog stretch or wall straddle in the evening."},
+ {k:"shoulders",area:"Shoulders",name:"Back scratch",how:"One hand over the shoulder, the other up the back from below. Try to touch fingers. Use your worse side.",q:"apley back scratch test",
+  o:["Gap over 10 cm","Gap of 1–10 cm","Fingertips touch","Fingers overlap"],tip:"Add a set of shoulder dislocates and wall slides every day."},
+ {k:"spine",area:"Back bend",name:"Bridge",how:"Lie on your back, hands by your ears, and push up.",q:"bridge progression back bend",
+  o:["Can't lift the head off the floor","Bridge with the head resting on the floor","Head off the floor, arms bent","Straight arms for 20 seconds"],tip:"Practise one level below your best, 3 × 15 seconds, three times a week."},
+ {k:"hang",area:"Hang & grip",name:"Dead hang",how:"Hang from the bar with straight arms. Time how long you can hold.",q:"dead hang test",
+  o:["Under 20 seconds","20–44 seconds","45–59 seconds","60 seconds or more"],tip:"Add extra hangs through the day. Aim for 2 minutes of total hang time."},
+ {k:"knees",area:"Knee strength",name:"ATG split squat",how:"Front heel flat, back knee down, front knee well past the toes. Use your weaker side.",q:"kneesovertoesguy atg split squat test",
+  o:["Can't reach full depth","Full depth, holding on","10 reps, no support","10 reps holding dumbbells"],tip:"Add an extra set of ATG split squats or Patrick steps on Day A."}
+];
+const MAX=TESTS.length*3;
+const placeStage=t=>t<=8?1:t<=15?2:t<=21?3:4;
+const CUTS=[9,16,22];
+
+/* ---------- Helpers ---------- */
+const REP_SEC=3.5,SET_GAP=20,CIRC=565.49;
+const $=id=>document.getElementById(id);
+const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const jget=(k,d)=>{try{return JSON.parse(store.get(k))??d}catch(e){return d}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const yt=q=>"https://www.youtube.com/results?search_query="+encodeURIComponent(q);
+const estMin=d=>Math.round(d.ex.reduce((s,e)=>s+((e.type==="time"?e.v:e.v*REP_SEC)+SET_GAP)*e.sets*e.sides,0)/60);
+const dose=e=>`${e.sets} × ${e.type==="time"?e.v+"s hold":e.v+" reps"}${e.sides===2?" / side":""}`;
+const PLAY='<svg viewBox="0 0 12 12" fill="currentColor"><path d="M2 1l9 5-9 5z"/></svg>';
+const fmtDate=ts=>new Date(ts).toLocaleDateString("en-AU",{day:"numeric",month:"short"});
+
+let stage=Number(store.get("ml-phase"))||1; if(!PHASES[stage-1])stage=1;
+const nextDay=s=>{const l=store.get("ml-last-"+s);return l===null?0:(Number(l)+1)%2};
+let viewDay=nextDay(stage);
+let tab=store.get("ml-tab")==="test"?"test":"train";
+let answers=jget("ml-draft",{});
+
+/* ---------- Render: train ---------- */
+function renderTrain(){
+  const p=PHASES[stage-1],d=p.days[viewDay],up=nextDay(stage);
+  document.body.dataset.stage=stage;
+  const n=Number(store.get("ml-count")||0);
+  $("count").textContent=n?`${n} session${n===1?"":"s"} done`:"";
+  $("title").innerHTML=`Stage ${stage} · <em>${p.name}</em>`;
+  const hist=jget("ml-history",[]);const last=hist[hist.length-1];
+  const due=last&&Date.now()-last.ts>28*864e5;
+  $("nudge").innerHTML=!last?`<div class="nudge"><p><b>Take the level test first</b>It takes about 10 minutes and places you in the right stage.</p><button type="button" id="nudgeBtn">Start</button></div>`
+    :due?`<div class="nudge"><p><b>Retest due</b>Last test was ${fmtDate(last.ts)}. See how far you've come.</p><button type="button" id="nudgeBtn">Retest</button></div>`:"";
+  if($("nudgeBtn"))$("nudgeBtn").onclick=()=>setTab("test");
+  const rec=last?last.stage:null;
+  $("stages").innerHTML=PHASES.map(x=>`<button class="stage" role="tab" type="button" id="st${x.id}" aria-selected="${x.id===stage}" data-s="${x.id}"><span class="dot" style="background:var(--s${x.id})"></span><b>${x.name}</b><small>${rec===x.id?"Your level":"Stage "+x.id}</small></button>`).join("");
+  $("stages").querySelectorAll("button").forEach(b=>b.onclick=()=>{stage=Number(b.dataset.s);store.set("ml-phase",stage);viewDay=nextDay(stage);renderTrain()});
+  $("hero").innerHTML=`<div><div class="label">${viewDay===up?"Up next":"Also in this stage"}</div><h2>${d.name}: ${d.focus}</h2><p>${p.blurb}</p></div>
+    <div class="stats"><div class="stat"><strong>${estMin(d)}</strong><span>minutes</span></div><div class="stat"><strong>${d.ex.length}</strong><span>moves</span></div><div class="stat"><strong>${d.ex.reduce((s,e)=>s+e.sets*e.sides,0)}</strong><span>sets</span></div></div>
+    <button class="go" type="button" id="startBtn">${PLAY}Start ${d.name}</button>`;
+  $("startBtn").onclick=()=>startPlayer(d);
+  $("seg").innerHTML=p.days.map((x,i)=>`<button type="button" id="day${i}" aria-pressed="${i===viewDay}" data-d="${i}">${x.name}${i===up?'<span class="tag">Next</span>':""}</button>`).join("");
+  $("seg").querySelectorAll("button").forEach(b=>b.onclick=()=>{viewDay=Number(b.dataset.d);renderTrain()});
+  const main=d.ex.filter(e=>!e.split),spl=d.ex.filter(e=>e.split);
+  const row=(e,i)=>`<li class="item${e.split?" split":""}"><span class="idx">${i}</span><div class="body"><span class="name">${esc(e.n)}</span><span class="dose">${dose(e)}</span><span class="cue">${esc(e.cue)}</span><span class="src">${esc(e.src)}</span></div><a class="play" href="${yt(e.q)}" target="_blank" rel="noopener" aria-label="Watch ${esc(e.n)} demo">${PLAY}</a></li>`;
+  $("blocks").innerHTML=`<div class="block-h"><h3>Strength & mobility</h3><span>${main.length} moves</span></div><ol class="list">${main.map((e,i)=>row(e,i+1)).join("")}</ol>
+    <div class="block-h"><h3>Splits block</h3><span>${viewDay===0?"Front split":"Middle split"}</span></div><ol class="list">${spl.map((e,i)=>row(e,main.length+i+1)).join("")}</ol>`;
+}
+
+/* ---------- Render: test ---------- */
+function renderTest(){
+  $("testList").innerHTML=TESTS.map((t,i)=>`<div class="test"><div class="test-h"><div><div class="label">${i+1} / ${TESTS.length} · ${t.area}</div><h3>${t.name}</h3></div><a class="play" href="${yt(t.q)}" target="_blank" rel="noopener" aria-label="Watch ${esc(t.name)} demo">${PLAY}</a></div>
+    <p>${esc(t.how)}</p><div class="opts">${t.o.map((o,j)=>`<button type="button" class="opt" id="o-${t.k}-${j}" data-k="${t.k}" data-v="${j}" aria-pressed="${answers[t.k]===j}"><span class="lv">${j}</span><span>${esc(o)}</span></button>`).join("")}</div></div>`).join("");
+  $("testList").querySelectorAll(".opt").forEach(b=>b.onclick=()=>{answers[b.dataset.k]=Number(b.dataset.v);store.set("ml-draft",JSON.stringify(answers));
+    b.parentElement.querySelectorAll(".opt").forEach(x=>x.setAttribute("aria-pressed",x===b));updScore()});
+  updScore();renderHistory();
+  const hist=jget("ml-history",[]);if(hist.length)showResult(hist[hist.length-1],hist[hist.length-2]);else $("result").innerHTML="";
+}
+function updScore(){const done=TESTS.filter(t=>answers[t.k]!==undefined).length;const b=$("scoreBtn");b.disabled=done<TESTS.length;b.textContent=done<TESTS.length?`Answer all tests (${done}/${TESTS.length})`:"See my level"}
+$("scoreBtn").onclick=()=>{
+  const scores={};let total=0;TESTS.forEach(t=>{scores[t.k]=answers[t.k];total+=answers[t.k]});
+  const r={ts:Date.now(),scores,total,stage:placeStage(total)};
+  const hist=jget("ml-history",[]);hist.push(r);store.set("ml-history",JSON.stringify(hist.slice(-12)));
+  answers={};store.set("ml-draft","{}");
+  renderTest();window.scrollTo({top:0,behavior:"smooth"});
+};
+function showResult(r,prev){
+  const p=PHASES[r.stage-1];
+  const weak=TESTS.filter(t=>r.scores[t.k]<=1).sort((a,b)=>r.scores[a.k]-r.scores[b.k]).slice(0,3);
+  const diff=prev?r.total-prev.total:null;
+  $("result").innerHTML=`<div class="card result" style="--accent:var(--s${r.stage});--on-accent:var(--on-s${r.stage})">
+    <div class="label">Your level · ${fmtDate(r.ts)}</div>
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap"><div class="big">${r.total}<small> / ${MAX}</small></div>
+    <div style="text-align:right"><h3>Stage ${r.stage} · ${p.name}</h3>${diff!==null?`<span class="count">${diff>=0?"+":""}${diff} since ${fmtDate(prev.ts)}</span>`:""}</div></div>
+    <div class="meter"><i style="width:${r.total/MAX*100}%"></i>${CUTS.map(c=>`<span class="tick" style="left:${c/MAX*100}%"></span>`).join("")}</div>
+    <div class="scale"><span>Unlock</span><span>Build</span><span>Open</span><span>Elastic</span></div>
+    <ul class="areas">${TESTS.map(t=>`<li class="area"><span>${t.area}</span><span class="bar"><i style="width:${r.scores[t.k]/3*100}%"></i></span><span class="n">${r.scores[t.k]}</span></li>`).join("")}</ul>
+    ${weak.length?`<div><div class="label" style="margin-bottom:8px">Focus areas · add these on top</div><ul class="focus">${weak.map(t=>`<li><b>${t.area}:</b> ${esc(t.tip)}</li>`).join("")}</ul></div>`:`<p class="sub">No weak spots. Keep stacking sessions.</p>`}
+    <button class="go" type="button" id="useStage">Train Stage ${r.stage}</button></div>`;
+  $("useStage").onclick=()=>{stage=r.stage;store.set("ml-phase",stage);viewDay=nextDay(stage);setTab("train")};
+}
+function renderHistory(){const h=jget("ml-history",[]);$("history").innerHTML=h.length>1?`<div class="card"><div class="label">Test history</div><ul class="hist">${h.slice().reverse().map(r=>`<li><span>${fmtDate(r.ts)}</span><span>${r.total}/${MAX} · Stage ${r.stage}</span></li>`).join("")}</ul></div>`:""}
+
+/* ---------- Tabs ---------- */
+function setTab(t){tab=t;store.set("ml-tab",t);$("tabTrain").setAttribute("aria-selected",t==="train");$("tabTest").setAttribute("aria-selected",t==="test");
+  $("viewTrain").hidden=t!=="train";$("viewTest").hidden=t!=="test";
+  const hist=jget("ml-history",[]);$("tabTest").innerHTML="Level test"+(hist.length?"":'<span class="pip"></span>');
+  if(t==="train")renderTrain();else{document.body.dataset.stage=stage;renderTest()}window.scrollTo(0,0)}
+$("tabTrain").onclick=()=>setTab("train");$("tabTest").onclick=()=>setTab("test");
+
+/* ---------- Player ---------- */
+let steps=[],si=0,timer=null,left=0,total=0,mode="idle",audio=null,lock=null,curDay=null;
+function beep(f=880,d=.15){try{if(!audio)return;const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=f;o.connect(g);g.connect(audio.destination);g.gain.setValueAtTime(.2,audio.currentTime);g.gain.exponentialRampToValueAtTime(.001,audio.currentTime+d);o.start();o.stop(audio.currentTime+d)}catch(e){}}
+function ring(f){$("pArc").style.strokeDashoffset=CIRC*(1-Math.max(0,Math.min(1,f)))}
+async function startPlayer(day){
+  curDay=day;steps=[];for(const e of day.ex)for(let s=1;s<=e.sets;s++)for(let side=1;side<=e.sides;side++)steps.push({e,s,side});
+  si=0;try{audio=audio||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}
+  try{lock=await navigator.wakeLock?.request("screen")}catch(e){lock=null}
+  $("player").hidden=false;document.body.style.overflow="hidden";show();
+}
+function closePlayer(){clearInterval(timer);timer=null;$("player").hidden=true;document.body.style.overflow="";try{lock?.release()}catch(e){}lock=null;renderTrain()}
+const setLabel=st=>`Set ${st.s} of ${st.e.sets}${st.e.sides===2?(st.side===1?" · Left":" · Right"):""}${st.e.split?" · Splits":""}`;
+function show(){
+  clearInterval(timer);timer=null;
+  if(si>=steps.length)return finish();
+  const st=steps[si],e=st.e;
+  $("pBar").style.width=(si/steps.length*100)+"%";$("pStep").textContent=`${si+1}/${steps.length}`;
+  $("pSet").textContent=setLabel(st);$("pName").textContent=e.n;$("pCue").textContent=e.cue;
+  $("pSrc").textContent=e.src;$("pWatch").href=yt(e.q);$("pWatch").hidden=false;
+  const nx=steps[si+1];$("pNext").textContent=nx?`Next: ${nx.e.n}`:"Last one";
+  $("pArc").style.transition="none";ring(1);void $("pArc").getBoundingClientRect();$("pArc").style.transition="";
+  if(e.type==="time"){mode="idle";$("pBig").textContent=e.v;$("pUnit").textContent="seconds";$("pMain").textContent="Start hold"}
+  else{mode="reps";$("pBig").textContent=e.v;$("pUnit").textContent="reps";$("pMain").textContent="Done"}
+  $("pPrev").disabled=si===0;$("pSkip").disabled=false;
+}
+function tick(){
+  left--;
+  if(mode==="lead"){if(left>0){$("pBig").textContent=left;beep(520,.08)}else{mode="hold";total=left=steps[si].e.v;$("pBig").textContent=left;$("pUnit").textContent="seconds";ring(1);beep(880,.2)}return}
+  if(mode==="hold"){$("pBig").textContent=Math.max(left,0);ring(left/total);if(left<=3&&left>0)beep(660,.08);
+    if(left<=0){clearInterval(timer);timer=null;beep(990,.35);mode="wait";setTimeout(()=>{if(mode==="wait"){si++;show()}},900)}}
+}
+function finish(){
+  mode="end";$("pBar").style.width="100%";$("pStep").textContent="Done";
+  $("pSet").textContent="Session complete";$("pName").textContent="Nice work";$("pBig").textContent="✓";$("pUnit").textContent=curDay.name;ring(1);
+  $("pCue").textContent="Next time is the other day. Retest every 4 weeks.";$("pWatch").hidden=true;$("pSrc").textContent="";$("pNext").textContent="";
+  $("pMain").textContent="Finish";$("pPrev").disabled=true;$("pSkip").disabled=true;
+  const idx=PHASES[stage-1].days.indexOf(curDay);if(idx>-1){store.set("ml-last-"+stage,idx);viewDay=(idx+1)%2}
+  store.set("ml-count",Number(store.get("ml-count")||0)+1);
+}
+$("pMain").onclick=()=>{
+  if(mode==="end")return closePlayer();
+  if(mode==="reps"){beep(880,.12);si++;return show()}
+  if(mode==="idle"){mode="lead";left=3;$("pBig").textContent="3";$("pUnit").textContent="get ready";$("pMain").textContent="Pause";timer=setInterval(tick,1000);return}
+  if(mode==="lead"||mode==="hold"){if(timer){clearInterval(timer);timer=null;$("pMain").textContent="Resume"}else{timer=setInterval(tick,1000);$("pMain").textContent="Pause"}}
+};
+$("pSkip").onclick=()=>{mode="skip";si++;show()};
+$("pPrev").onclick=()=>{if(si>0){mode="skip";si--;show()}};
+$("pClose").onclick=closePlayer;
+document.addEventListener("keydown",ev=>{if(!$("player").hidden&&ev.key==="Escape")closePlayer()});
+
+(function greet(){const h=new Date().getHours();$("greet").textContent=(h<12?"Morning":h<17?"Afternoon":"Evening")+", Joe"})();
+setTab(tab);
+</script>
+
+</body>
+</html>
